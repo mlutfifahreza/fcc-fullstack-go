@@ -27,5 +27,4 @@ go.work.sum
 # goland
 .idea/
 
-
 tmp/
