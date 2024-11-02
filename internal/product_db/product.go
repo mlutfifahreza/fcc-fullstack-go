@@ -8,13 +8,11 @@ import (
 	"github.com/jackc/pgx/v4"
 )
 
-// Product represents the product table in PostgreSQL
 type Product struct {
 	ID   string `json:"id" validate:"required"`
 	Name string `json:"name" validate:"required"`
 }
 
-// CreateProduct inserts a new product into the database
 func (db *Database) CreateProduct(ctx context.Context, product *Product) error {
 	query := `INSERT INTO products (id, name) VALUES ($1, $2)`
 	_, err := db.pool.Exec(ctx, query, product.ID, product.Name)
@@ -24,7 +22,6 @@ func (db *Database) CreateProduct(ctx context.Context, product *Product) error {
 	return nil
 }
 
-// GetProduct retrieves a product by ID from the database
 func (db *Database) GetProduct(ctx context.Context, id string) (*Product, error) {
 	query := `SELECT id, name FROM products WHERE id = $1`
 	row := db.pool.QueryRow(ctx, query, id)
@@ -39,7 +36,6 @@ func (db *Database) GetProduct(ctx context.Context, id string) (*Product, error)
 	return &product, nil
 }
 
-// UpdateProduct updates a product's details in the database
 func (db *Database) UpdateProduct(ctx context.Context, product *Product) error {
 	query := `UPDATE products SET name = $1 WHERE id = $2`
 	result, err := db.pool.Exec(ctx, query, product.Name, product.ID)
@@ -54,7 +50,6 @@ func (db *Database) UpdateProduct(ctx context.Context, product *Product) error {
 	return nil
 }
 
-// DeleteProduct removes a product from the database by ID
 func (db *Database) DeleteProduct(ctx context.Context, id string) error {
 	query := `DELETE FROM products WHERE id = $1`
 	result, err := db.pool.Exec(ctx, query, id)

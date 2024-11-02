@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/log"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
 
@@ -21,7 +20,6 @@ func HandleCreateProduct(productDb *product_db.Database) fiber.Handler {
 		var newProduct NewProduct
 
 		if err := util.ParseAndValidateRequest(ctx, &newProduct); err != nil {
-			log.Errorw("Failed to BodyParser", "error", err)
 			return BadRequestResponse(ctx, err)
 		}
 
@@ -31,8 +29,7 @@ func HandleCreateProduct(productDb *product_db.Database) fiber.Handler {
 		}
 
 		if err := productDb.CreateProduct(ctx.UserContext(), &product); err != nil {
-			log.Errorw("Failed to create product", "error", err)
-			return InternalErrorResponse(ctx)
+			return InternalErrorResponse(ctx, err)
 		}
 
 		return SuccessResponse(ctx, product)
@@ -48,9 +45,7 @@ func HandleGetProduct(productDb *product_db.Database) fiber.Handler {
 			if errors.Is(err, pgx.ErrNoRows) {
 				return NotFoundResponse(ctx)
 			}
-
-			log.Errorw("Failed to get product", "error", err)
-			return InternalErrorResponse(ctx)
+			return InternalErrorResponse(ctx, err)
 		}
 
 		return SuccessResponse(ctx, product)
@@ -62,7 +57,6 @@ func HandleUpdateProduct(productDb *product_db.Database) fiber.Handler {
 		var updatedProduct product_db.Product
 
 		if err := util.ParseAndValidateRequest(ctx, &updatedProduct); err != nil {
-			log.Errorw("Failed to BodyParser", "error", err)
 			return BadRequestResponse(ctx, err)
 		}
 
@@ -70,9 +64,7 @@ func HandleUpdateProduct(productDb *product_db.Database) fiber.Handler {
 			if errors.Is(err, pgx.ErrNoRows) {
 				return NotFoundResponse(ctx)
 			}
-
-			log.Errorw("Failed to update product", "error", err)
-			return InternalErrorResponse(ctx)
+			return InternalErrorResponse(ctx, err)
 		}
 
 		return SuccessResponse(ctx, updatedProduct)
@@ -87,9 +79,7 @@ func HandleDeleteProduct(productDb *product_db.Database) fiber.Handler {
 			if errors.Is(err, pgx.ErrNoRows) {
 				return NotFoundResponse(ctx)
 			}
-
-			log.Errorw("Failed to delete product", "error", err)
-			return InternalErrorResponse(ctx)
+			return InternalErrorResponse(ctx, err)
 		}
 
 		return SuccessResponse(ctx, fiber.Map{"id": id})
