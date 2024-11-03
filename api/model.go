@@ -5,25 +5,34 @@ import (
 	"github.com/gofiber/fiber/v2/log"
 )
 
-type ErrorResponse struct {
+type Response struct {
+	Success bool   `json:"success,omitempty"`
+	Data    any    `json:"data,omitempty"`
 	Message string `json:"message,omitempty"`
 	Error   string `json:"error,omitempty"`
 	Code    string `json:"code,omitempty"`
 }
 
 func SuccessResponse(ctx *fiber.Ctx, data any) error {
-	return ctx.Status(200).JSON(data)
+	return ctx.Status(200).JSON(Response{
+		Success: true,
+		Data:    data,
+	})
 }
 
 func BadRequestResponse(ctx *fiber.Ctx, err error) error {
-	return ctx.Status(400).JSON(ErrorResponse{
+	return ctx.Status(400).JSON(Response{
+		Success: false,
 		Message: "Invalid Request",
 		Error:   err.Error(),
 	})
 }
 
 func NotFoundResponse(ctx *fiber.Ctx) error {
-	return ctx.Status(404).JSON(fiber.Map{"message": "Not found"})
+	return ctx.Status(404).JSON(Response{
+		Success: false,
+		Message: "Not Found",
+	})
 }
 
 func InternalErrorResponse(ctx *fiber.Ctx, err error) error {
@@ -35,5 +44,8 @@ func InternalErrorResponse(ctx *fiber.Ctx, err error) error {
 		"Body":      ctx.Body(),
 		"Error":     err.Error(),
 	})
-	return ctx.Status(500).JSON(fiber.Map{"message": "Internal Server Error"})
+	return ctx.Status(500).JSON(Response{
+		Success: false,
+		Message: "Internal Server Error",
+	})
 }

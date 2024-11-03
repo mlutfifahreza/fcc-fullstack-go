@@ -7,6 +7,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 
 	"github.com/joho/godotenv"
 
@@ -88,11 +89,17 @@ func loadEnv() *EnvConfig {
 }
 
 func setupRoute(app *fiber.App, dep *AppDependencies) {
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "http://localhost:3000",
+		AllowHeaders: "Origin,Content-Type,Accept",
+	}))
+
 	app.Get("/", api.HandleHome())
 	app.Get("/ping", api.HandlePing())
 
 	app.Post("/products", api.HandleCreateProduct(dep.productDB))
 	app.Patch("/products", api.HandleUpdateProduct(dep.productDB))
+	app.Get("/products", api.HandleGetProductList(dep.productDB))
 	app.Get("/products/:id", api.HandleGetProduct(dep.productDB))
 	app.Delete("/products/:id", api.HandleDeleteProduct(dep.productDB))
 }

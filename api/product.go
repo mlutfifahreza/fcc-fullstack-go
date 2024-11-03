@@ -2,6 +2,8 @@ package api
 
 import (
 	"errors"
+	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -52,6 +54,33 @@ func HandleGetProduct(productDb *product_db.Database) fiber.Handler {
 	}
 }
 
+func HandleGetProductList(productDb *product_db.Database) fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		page, _ := strconv.Atoi(ctx.Query("page", "0"))
+		size, _ := strconv.Atoi(ctx.Query("size", "0"))
+
+		if size == 0 {
+			size = 10
+		}
+
+		if page == 0 {
+			page = 1
+		}
+
+		filter := product_db.GetProductListFilter{
+			Limit:  size,
+			Offset: (page - 1) * size,
+		}
+
+		products, err := productDb.GetProductList(ctx.UserContext(), filter)
+		if err != nil {
+			return InternalErrorResponse(ctx, err)
+		}
+
+		return SuccessResponse(ctx, products)
+	}
+}
+
 func HandleUpdateProduct(productDb *product_db.Database) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		var updatedProduct product_db.Product
@@ -60,6 +89,8 @@ func HandleUpdateProduct(productDb *product_db.Database) fiber.Handler {
 			return BadRequestResponse(ctx, err)
 		}
 
+		updatedProduct.UpdatedAt = time.Now()
+
 		if err := productDb.UpdateProduct(ctx.UserContext(), &updatedProduct); err != nil {
 			if errors.Is(err, pgx.ErrNoRows) {
 				return NotFoundResponse(ctx)
@@ -67,7 +98,7 @@ func HandleUpdateProduct(productDb *product_db.Database) fiber.Handler {
 			return InternalErrorResponse(ctx, err)
 		}
 
-		return SuccessResponse(ctx, updatedProduct)
+		return SuccessResponse(ctx, nil)
 	}
 }
 
